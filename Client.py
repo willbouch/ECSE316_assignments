@@ -6,7 +6,7 @@ import time
 class DnsClient:
     def __init__(self, name, server, timeout, retries, port, mx, ns):
         self.name = name
-        self.server = server
+        self.server = server[1:]  # Remove the @
         self.timeout = timeout
         self.retries = retries
         self.port = port
@@ -24,39 +24,44 @@ class DnsClient:
         print('Request type: ' + self.query_type)
 
         # Used https://wiki.python.org/moin/UdpCommunication for information about the socket library
-        packet = PacketBuilder.build_packet(
+        packet = PacketBuilder().build_packet(
             url=self.name, query_type=self.query_type)
         socket = skt.socket(skt.AF_INET, skt.SOCK_DGRAM)
         socket.settimeout(self.timeout)
+        socket.setsockopt(skt.SOL_SOCKET, skt.SO_REUSEADDR, 1)
         socket.bind(('', self.port))
 
-        self.send_and_receive(socket, packet)
+        # Send and receive
+        resp = self.send_and_receive(socket, packet, 1)
 
-    def send_and_receive(self, socket, packet):
-        is_success = False
-        i = 1
-        while (not is_success) and i - 1 <= self.retries:
+        # Interpret
+        return PacketBuilder().unbuild_packet(resp)
+
+    def send_and_receive(self, socket, packet, i):
+        if i - 1 <= self.retries:
             try:
-
                 t0 = time.time()
 
                 # Send
                 socket.sendto(packet, (self.server, self.port))
-                is_success = True
 
                 # Receive
-                resp, addr = socket.recvfrom(512)
+                resp, _ = socket.recvfrom(512)
 
                 t1 = time.time()
 
                 # Close
                 socket.close()
 
-                print('Response received after ' + (t1-t0) +
-                      ' seconds ('+(i-1)+' retries)')
-            except skt.timeout:
-                print('ERROR: Socket timeout on attempt ' + i)
+                print('Response received after ' + str(t1-t0) +
+                      ' seconds ('+str(i-1)+' retries)')
 
-        if i - 1 > self.retries:
-            print('ERROR: Maximum number of retries ('+self.retries+') exceeded')
-            return
+                return resp
+            except skt.timeout:
+                print('ERROR\tSocket timeout on attempt ' + str(i))
+                self.send_and_receive(socket, packet, i+1)
+
+        elif i - 1 > self.retries:
+            print('ERROR\tMaximum number of retries ' +
+                  str(self.retries)+' exceeded')
+            return -1

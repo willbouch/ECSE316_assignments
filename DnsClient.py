@@ -3,8 +3,7 @@ from Client import DnsClient
 
 
 def main():
-
-    parsed_args = parse()
+    parsed_args = parse()  # TODO parse error message
 
     name = parsed_args.name
     server = parsed_args.server
@@ -16,7 +15,25 @@ def main():
     dnsClient = DnsClient(name=name, server=server,
                           timeout=timeout, retries=retries, port=port, mx=mx, ns=ns)
 
-    dnsClient.send_request()
+    resp = dnsClient.send_request()
+    display_response(resp)
+
+
+def display_response(resp):
+    print()
+    if resp['answer_count'] > 0:
+        print('***Answer Section ('+str(resp['answer_count'])+' records)***')
+        for i in range(len(resp['answers'])):
+            print(resp['answers'][i])
+
+    if resp['additional_info_count'] > 0:
+        print('***Additional Section (' +
+              str(resp['additional_info_count'])+' records)***')
+        for i in range(len(resp['additional'])):
+            print(resp['additional'][i])
+
+    if resp['additional_info_count'] + resp['answer_count'] <= 0:
+        print('NOTFOUND')
 
 
 def parse():
