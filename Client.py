@@ -60,6 +60,12 @@ class DnsClient:
             except skt.timeout:
                 print('ERROR\tSocket timeout on attempt ' + str(i))
                 self.send_and_receive(socket, packet, i+1)
+            except socket.error as e:
+                print('ERROR\tCould not create socket')
+            except socket.gaierror as e:
+                print('ERROR\tUnknown host')
+            except Exception as e:
+                print(e)
 
         elif i - 1 > self.retries:
             print('ERROR\tMaximum number of retries ' +

@@ -3,7 +3,11 @@ from Client import DnsClient
 
 
 def main():
-    parsed_args = parse()  # TODO parse error message
+    try:
+        parsed_args = parse()
+    except:
+        print('ERROR\tIncorrect input syntax. Check the arguments passed and try again')
+        return
 
     name = parsed_args.name
     server = parsed_args.server

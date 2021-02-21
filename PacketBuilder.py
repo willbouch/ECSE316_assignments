@@ -1,11 +1,12 @@
 import struct
+import random
 
 
 class PacketBuilder:
     def build_packet(self, url, query_type):
         # reference: https://stackoverflow.com/questions/24814044/having-trouble-building-a-dns-packet-in-python
 
-        pack = struct.pack('>H', 12049)  # Query Ids (Just 1 for now) TODO
+        pack = struct.pack('>H', random.getrandbits(16))  # Query Id
         pack += struct.pack('>H', 0x0100)  # Flags
         pack += struct.pack('>H', 1)  # Questions
         pack += struct.pack('>H', 0)  # Answers
