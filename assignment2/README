@@ -1,0 +1,5 @@
+Python version: 3.8.5
+
+To run the code, put the image of choice in the same directory and run the following command:
+
+```python3 fft.py -m [mode] -i [image_path]```
